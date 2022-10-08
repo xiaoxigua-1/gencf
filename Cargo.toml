@@ -1,0 +1,11 @@
+[package]
+name = "gencf"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+genfc_core = { path = "core" }
+genfc_macros = { path = "macros" }
+
+[workspace]
+members = ["macros", "core"]
