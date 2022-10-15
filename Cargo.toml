@@ -4,8 +4,9 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-genfc_core = { path = "core" }
-genfc_macros = { path = "macros" }
+gencf_core = { path = "core" }
+gencf_macros = { path = "macros" }
+gencf_util = { path = "util" }
 
 [workspace]
-members = ["macros", "core"]
+members = ["macros", "core", "util"]

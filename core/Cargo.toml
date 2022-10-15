@@ -1,5 +1,5 @@
 [package]
-name = "genfc_core"
+name = "gencf_core"
 version = "0.1.0"
 edition = "2021"
 
@@ -11,3 +11,4 @@ proc-macro = true
 [dependencies]
 syn = { version = "1.0.72", features = ["full", "visit", "visit-mut", "extra-traits"] }
 quote = "1.0"
+proc-macro2 = "1.0.27"

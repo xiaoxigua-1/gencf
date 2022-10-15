@@ -1,4 +1,3 @@
-extern crate genfc_core;
-
-pub use genfc_core::*;
-pub use genfc_macros::*;
+pub use gencf_core::*;
+pub use gencf_macros::*;
+pub use gencf_util::*;
