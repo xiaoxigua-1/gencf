@@ -108,7 +108,7 @@ macro_rules! TokensGenerator {
 
 #[macro_export]
 macro_rules! OtherTokenGenerator {
-    ($name: ident, $( $token:expr => $token_type:ident ),*) => {
+    ($name: ident, { $( $token:expr => $token_type:ident ),* }) => {
         #[derive(Debug, Clone, PartialEq)]
         pub enum $name {
             $(
@@ -137,41 +137,10 @@ macro_rules! OtherTokenGenerator {
 }
 
 #[macro_export]
-macro_rules! TokenRule {
-    (@step $_idx:expr) => {
-        $rule => true,
-        _ => false
-    };
-    ($rule: pat) => {
-        $rule
-    };
-    ($($start_rule: pat),*) => {
-        match c {
-            TokenRule!(
-                @step 0,
-                [$($start_rule),*],
-                $rule
-            )
-        }
-    };
-    (@step $index: expr, $now_rule: pat, $($start_rule: pat),*) => {
-        $now_rule if strs.len() == $index => true,
-        TokenRule!(
-            @step $index + 1,
-            [$($start_rule),*],
-            $rule
-        )
-    }
-}
-
-#[macro_export]
 macro_rules! RuleGenerator {
     (pass) => {{
-        continue
-     }};
-    ([$rule: pat]) => {
-        $rule
-    };
+        continue;
+    }};
 }
 
 #[macro_export]
