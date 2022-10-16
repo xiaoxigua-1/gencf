@@ -75,13 +75,7 @@ macro_rules! TokensGenerator {
                         .map(|token| { token.clone() })
                     .collect::<Vec<&str>>();
 
-                    if tokens.len() == 1 {
-                        file_stream.next_char();
-                        break Tokens::find(tokens[0], Position {
-                            start: start,
-                            end: file_stream.index.clone(),
-                        })
-                    } else if tokens.is_empty() {
+                    if tokens.is_empty() {
                         let find = prev_tokens.iter().find(|token| { token.to_string() == strs });
                         break if let Some(find) = find {
                             Tokens::find(find, Position {
@@ -209,8 +203,7 @@ macro_rules! LexerGenerator {
                         }
                         Some(c) => {
                             break Token {
-                                token_type: <$tokens_type>::new(&mut self.file_stream)
-                                    .unwrap_or(Tokens::EOF),
+                                token_type: <$tokens_type>::new(&mut self.file_stream)?,
                                 pos: Some(Position::new(start, self.file_stream.index.clone() - 1)),
                             }
                         }
