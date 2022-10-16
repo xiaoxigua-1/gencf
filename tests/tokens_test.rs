@@ -1,8 +1,9 @@
+use gencf::OtherTokenGenerator;
 #[gencf::core]
-use gencf::{GenCFErrorGenerator, KeywordGenerator, LexerGenerator, TokensGenerator};
+use gencf::{GenCFErrorGenerator, LexerGenerator, TokensGenerator};
 
 GenCFErrorGenerator!(INVALID_SYNTAX => "invalid syntax");
-KeywordGenerator!(Keywords, GenCFErrorMessage::INVALID_SYNTAX, "if" => If);
+OtherTokenGenerator!(Keywords, "if" => If);
 TokensGenerator!(
     GenCFErrorMessage::INVALID_SYNTAX,
     [Keywords],
@@ -17,14 +18,14 @@ TokensGenerator!(
 LexerGenerator!(
     Tokens,
     {
-        'a'..='z', [] => Keywords,
-        _, [] => Tokens
+        'a'..='z' => Keywords,
+        _ => Tokens
     }
 );
 
 #[test]
 fn token_test() {
-    let content = String::from("+-*/++");
+    let content = String::from("+-*/++if ac");
     let mut lexer = Lexer::new(&Path::new(""), &content);
     while let Ok(token) = lexer.next_token::<Tokens>() {
         println!("{:?}", token);

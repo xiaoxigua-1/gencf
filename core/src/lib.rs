@@ -24,7 +24,7 @@ pub fn core(_args: TokenStream, input: TokenStream) -> TokenStream {
         }
 
         pub trait Keyword_trait<T> {
-            fn new(s: String, pos: Position) -> Result<T, GenCFError>;
+            fn find(s: &str, pos: Position) -> Option<T>;
         }
 
         pub trait Tokens_trait<T> {

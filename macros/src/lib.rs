@@ -37,10 +37,20 @@ macro_rules! TokensGenerator {
                     $(
                         $token_str => Ok(Tokens::$token),
                     )*
-                    _ => Err(GenCFError {
-                        error_message: $error,
-                        pos,
-                    })
+                    _ => {
+                        $(
+                            let find = <$other_type>::find(token_str, pos.clone());
+                            if let Some(find) = find {
+                                return Ok(Tokens::$other_type {
+                                    r#type: find,
+                                })
+                            }
+                        )*
+                        Err(GenCFError {
+                            error_message: $error,
+                            pos,
+                        })
+                    }
                 }
             }
         }
@@ -52,7 +62,9 @@ macro_rules! TokensGenerator {
                 let mut strs = String::new();
                 let mut index = 0;
                 let start = file_stream.index.clone();
-
+                $(
+                    tokens.append(&mut $other_type::tokens());
+                )*
                 loop {
                     let peep_char = file_stream.peep_char();
                     prev_tokens = tokens.clone();
@@ -62,6 +74,7 @@ macro_rules! TokensGenerator {
                         })
                         .map(|token| { token.clone() })
                     .collect::<Vec<&str>>();
+
                     if tokens.len() == 1 {
                         file_stream.next_char();
                         break Tokens::find(tokens[0], Position {
@@ -69,20 +82,22 @@ macro_rules! TokensGenerator {
                             end: file_stream.index.clone(),
                         })
                     } else if tokens.is_empty() {
-                        break if prev_tokens.is_empty() {
-                            Err(GenCFError {
-                                error_message: $error,
-                                pos: Position {
-                                    start: start,
-                                    end: file_stream.index.clone(),
-                                },
-                            })
-                        } else {
-                            Tokens::find(prev_tokens.iter().find(|token| { token.to_string() == strs }).unwrap(), Position {
+                        let find = prev_tokens.iter().find(|token| { token.to_string() == strs });
+                        break if let Some(find) = find {
+                            Tokens::find(find, Position {
                                 start: start,
                                 end: file_stream.index.clone(),
                             })
+                        } else {
+                            Err(GenCFError {
+                                error_message: $error,
+                                pos: Position::new(
+                                    start,
+                                    file_stream.index.clone(),
+                                )
+                            })
                         }
+
                     } else {
                         if let Some(next_char) = file_stream.next_char() {
                             strs.push(next_char);
@@ -98,23 +113,29 @@ macro_rules! TokensGenerator {
 }
 
 #[macro_export]
-macro_rules! KeywordGenerator {
-    ($name: ident, $error: expr, $( $keyword:expr => $keyword_type:ident ),*) => {
+macro_rules! OtherTokenGenerator {
+    ($name: ident, $( $token:expr => $token_type:ident ),*) => {
         #[derive(Debug, Clone, PartialEq)]
         pub enum $name {
             $(
-                #[doc=$keyword]
-                $keyword_type,
+                #[doc=$token]
+                $token_type,
             )*
         }
 
+        impl $name {
+            fn tokens() -> Vec<&'static str> {
+                vec![$($token),*]
+            }
+        }
+
         impl Keyword_trait<$name> for $name  {
-            fn new(s: String, pos: Position) -> Result<$name, GenCFError> {
-                match s.as_str() {
+            fn find(s: &str, pos: Position) -> Option<$name> {
+                match s {
                     $(
-                        $keyword => Ok($name::$keyword_type),
+                        $token => Some($name::$token_type),
                     )*
-                    _ => Err(GenCFError { error_message: $error, pos })
+                    _ => None
                 }
             }
         }
@@ -151,9 +172,7 @@ macro_rules! TokenRule {
 
 #[macro_export]
 macro_rules! RuleGenerator {
-    (_) => {
-        _
-    };
+    (pass) => {{}};
     ([$rule: pat]) => {
         $rule
     };
@@ -161,7 +180,7 @@ macro_rules! RuleGenerator {
 
 #[macro_export]
 macro_rules! LexerGenerator {
-    ($tokens_type: ty, { $($all_rule: pat, [$($rule: pat),*] => $token: ident),* }) => {
+    ($tokens_type: ty, { $($rule: pat => $token: ident),* }) => {
         pub struct Lexer<'a> {
             file_stream: FileStream<'a>,
             path: &'a Path,
@@ -181,37 +200,18 @@ macro_rules! LexerGenerator {
                 let mut strs = String::new();
                 let start = self.file_stream.index.clone();
                 let token = loop {
-                    let end = self.file_stream.index.clone();
-                    let pos = Position::new(start, end);
                     match self.file_stream.peep_char() {
                         None => {
-                            break if strs.is_empty() {
-                                Token {
-                                    token_type: <$tokens_type>::EOF,
-                                    pos: None,
-                                }
-                            } else {
-                                Token {
-                                    token_type: <$tokens_type>::new(&mut self.file_stream)?,
-                                    pos: Some(pos),
-                                }
+                            break Token {
+                                token_type: <$tokens_type>::EOF,
+                                pos: None,
                             }
                         }
                         Some(c) => {
-                            match c {
-                                $(
-                                    $all_rule => {
-                                        let rule_array: Vec<std::ops::Range<char>> = vec![$($rule),*];
-                                        if !rule_array.is_empty() && rule_array[strs.len()].contains(&c) {
-                                            strs.push(c);
-                                        } else {
-                                            break Token {
-                                                token_type: <$tokens_type>::new(&mut self.file_stream)?,
-                                                pos: Some(Position::new(start, self.file_stream.index.clone() - 1)),
-                                            }
-                                        }
-                                    }
-                                )*
+                            break Token {
+                                token_type: <$tokens_type>::new(&mut self.file_stream)
+                                    .unwrap_or(Tokens::EOF),
+                                pos: Some(Position::new(start, self.file_stream.index.clone() - 1)),
                             }
                         }
                     }
