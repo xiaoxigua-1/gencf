@@ -1,6 +1,5 @@
-use gencf::OtherTokenGenerator;
 #[gencf::core]
-use gencf::{GenCFErrorGenerator, LexerGenerator, TokensGenerator};
+use gencf::{GenCFErrorGenerator, LexerGenerator, TokensGenerator, OtherTokenGenerator};
 
 GenCFErrorGenerator!(INVALID_SYNTAX => "invalid syntax");
 OtherTokenGenerator!(Keywords, "if" => If);
@@ -17,8 +16,7 @@ TokensGenerator!(
 LexerGenerator!(
     Tokens,
     {
-        'a'..='z' => Keywords,
-        _ => Tokens
+        ' ' => pass
     }
 );
 

@@ -166,7 +166,9 @@ macro_rules! TokenRule {
 
 #[macro_export]
 macro_rules! RuleGenerator {
-    (pass) => {{}};
+    (pass) => {{
+        continue
+     }};
     ([$rule: pat]) => {
         $rule
     };
@@ -202,8 +204,19 @@ macro_rules! LexerGenerator {
                             }
                         }
                         Some(c) => {
+                            let token_type = match <$tokens_type>::new(&mut self.file_stream) {
+                                Ok(token_type) => token_type,
+                                Err(e) => {
+                                    self.file_stream.next_char();
+                                    match c {
+                                        $($rule => gencf::RuleGenerator!($token),)*
+                                        _ => return Err(e)
+                                    }
+                                }
+                            };
+
                             break Token {
-                                token_type: <$tokens_type>::new(&mut self.file_stream)?,
+                                token_type,
                                 pos: Some(Position::new(start, self.file_stream.index.clone() - 1)),
                             }
                         }
