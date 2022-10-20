@@ -32,7 +32,7 @@ macro_rules! TokensGenerator {
         }
 
         impl Tokens {
-            fn find(token_str: &str, pos: Position) -> Result<Tokens, GenCFError> {
+            fn find<'a>(token_str: &str, pos: Position, path: &'a Path) -> Result<Tokens, GenCFError<'a>> {
                 match token_str {
                     $(
                         $token_str => Ok(Tokens::$token),
@@ -49,6 +49,7 @@ macro_rules! TokensGenerator {
                         Err(GenCFError {
                             error_message: $error,
                             pos,
+                            path
                         })
                     }
                 }
@@ -56,7 +57,7 @@ macro_rules! TokensGenerator {
         }
 
         impl TokensTrait for Tokens {
-            fn new<'a>(file_stream: &mut FileStream<'a>) -> Result<Tokens, GenCFError> {
+            fn new<'a>(file_stream: &mut FileStream<'a>, path: &'a Path) -> Result<Tokens, GenCFError<'a>> {
                 let mut tokens = vec![$($token_str),*];
                 let mut prev_tokens = tokens.clone();
                 let mut strs = String::new();
@@ -81,14 +82,15 @@ macro_rules! TokensGenerator {
                             Tokens::find(find, Position {
                                 start: start,
                                 end: file_stream.index.clone(),
-                            })
+                            }, path)
                         } else {
                             Err(GenCFError {
                                 error_message: $error,
                                 pos: Position::new(
                                     start,
                                     file_stream.index.clone(),
-                                )
+                                ),
+                                path
                             })
                         }
 
@@ -135,7 +137,7 @@ macro_rules! OtherTokenGenerator {
             }
         }
 
-        impl Keyword_trait<$name> for $name  {
+        impl KeywordTrait<$name> for $name  {
             fn find(s: &str, pos: Position) -> Option<$name> {
                 match s {
                     $(

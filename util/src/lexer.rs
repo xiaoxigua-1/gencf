@@ -1,5 +1,5 @@
+use crate::{gen_cf_error::GenCFError, position::Position, FileStream, TokenTrait, TokensTrait};
 use std::path::Path;
-use crate::{FileStream, TokensTrait, gen_cf_error::GenCFError, TokenTrait, position::Position};
 
 pub struct Lexer<'a> {
     file_stream: FileStream<'a>,
@@ -14,24 +14,23 @@ impl Lexer<'_> {
         }
     }
 
-    pub fn next_token<T: TokenTrait, TS: TokensTrait>(
-        &mut self,
-    ) -> Result<T, GenCFError> where <T as TokenTrait>::TokenType: From<TS> {
+    pub fn next_token<T: TokenTrait, TS: TokensTrait>(&mut self) -> Result<T, GenCFError>
+    where
+        <T as TokenTrait>::TokenType: From<TS>,
+    {
         let mut strs = String::new();
         let start = self.file_stream.index.clone();
         let token = loop {
             match self.file_stream.peep_char() {
-                None => {
-                    break T::eof()
-                }
+                None => break T::eof(),
                 Some(c) => {
-                    let token_type = match TS::new(&mut self.file_stream) {
+                    let token_type = match TS::new(&mut self.file_stream, &self.path) {
                         Ok(token_type) => token_type,
                         Err(e) => {
                             // loop {
                             //     self.file_stream.next_char();
                             //     match c {
-                            //         $($rule => { 
+                            //         $($rule => {
                             //             if gencf::RuleGenerator!($token) {
                             //                 continue;
                             //             };
@@ -39,14 +38,14 @@ impl Lexer<'_> {
                             //         _ => return Err(e)
                             //     }
                             // }
-                            return Err(e)
+                            return Err(e);
                         }
                     };
 
                     break T::new(
                         token_type.try_into().unwrap(),
                         Position::new(start, self.file_stream.index.clone() - 1),
-                    )
+                    );
                 }
             }
         };

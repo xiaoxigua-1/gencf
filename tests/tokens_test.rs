@@ -1,6 +1,4 @@
 #[gencf::core]
-
-
 use gencf::lexer::Lexer;
 use gencf::{GenCFErrorGenerator, OtherTokenGenerator, TokensGenerator};
 

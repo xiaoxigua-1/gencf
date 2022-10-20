@@ -11,11 +11,7 @@ pub fn core(_args: TokenStream, input: TokenStream) -> TokenStream {
         use std::path::Path;
         use std::fmt::Debug;
         use std::sync::Arc;
-        use gencf::{GenCFError, Position, FileStream, TokensTrait, TokenTrait};
-
-        pub trait Keyword_trait<T> {
-            fn find(s: &str, pos: Position) -> Option<T>;
-        }
+        use gencf::{GenCFError, Position, FileStream, TokensTrait, TokenTrait, KeywordTrait};
 
         pub struct Rule {}
 
