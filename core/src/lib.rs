@@ -9,31 +9,23 @@ pub fn core(_args: TokenStream, input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as Item);
     TokenStream::from(quote! {
         use std::path::Path;
-        use gencf::FileStream;
-
-        #[derive(Debug)]
-        pub struct GenCFError {
-            pub error_message: &'static str,
-            pub pos: Position,
-        }
-
-        #[derive(Debug, Clone)]
-        pub struct Position {
-            pub start: usize,
-            pub end: usize,
-        }
+        use std::fmt::Debug;
+        use std::sync::Arc;
+        use gencf::{GenCFError, Position, FileStream, TokensTrait, TokenTrait};
 
         pub trait Keyword_trait<T> {
             fn find(s: &str, pos: Position) -> Option<T>;
         }
 
-        pub trait Tokens_trait<T> {
-            fn new<'a>(file_stream: &mut FileStream<'a>) -> Result<T, GenCFError>;
-        }
+        pub struct Rule {}
 
-        impl Position {
-            pub fn new(start: usize, end: usize) -> Position {
-                Position { start, end }
+        impl Rule {
+            fn pass(c: char) -> bool {
+                true
+            }
+
+            fn pop(c: char) -> bool {
+                false
             }
         }
 

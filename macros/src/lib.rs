@@ -26,8 +26,8 @@ macro_rules! TokensGenerator {
         }
 
         #[derive(Debug, Clone)]
-        pub struct Token {
-            pub token_type: Tokens,
+        pub struct Token<T> {
+            pub token_type: T,
             pub pos: Option<Position>,
         }
 
@@ -55,7 +55,7 @@ macro_rules! TokensGenerator {
             }
         }
 
-        impl Tokens_trait<Tokens> for Tokens {
+        impl TokensTrait for Tokens {
             fn new<'a>(file_stream: &mut FileStream<'a>) -> Result<Tokens, GenCFError> {
                 let mut tokens = vec![$($token_str),*];
                 let mut prev_tokens = tokens.clone();
@@ -103,6 +103,18 @@ macro_rules! TokensGenerator {
                 }
             }
         }
+
+        impl TokenTrait for Token<Tokens> {
+            type TokenType = Tokens;
+
+            fn new(token_type: Self::TokenType, pos: Position) -> Self {
+                Token { token_type: token_type, pos: Some(pos) }
+            }
+
+            fn eof() -> Self {
+                Token { token_type: Tokens::EOF, pos: None }
+            }
+        }
     };
 }
 
@@ -131,68 +143,6 @@ macro_rules! OtherTokenGenerator {
                     )*
                     _ => None
                 }
-            }
-        }
-    };
-}
-
-#[macro_export]
-macro_rules! RuleGenerator {
-    (pass) => {{
-        continue;
-    }};
-}
-
-#[macro_export]
-macro_rules! LexerGenerator {
-    ($tokens_type: ty, { $($rule: pat => $token: ident),* }) => {
-        pub struct Lexer<'a> {
-            file_stream: FileStream<'a>,
-            path: &'a Path,
-        }
-
-        impl Lexer<'_> {
-            pub fn new<'a>(path: &'a Path, file_content: &'a String) -> Lexer<'a> {
-                Lexer {
-                    file_stream: FileStream::new(file_content.chars()),
-                    path,
-                }
-            }
-
-            pub fn next_token<T: Tokens_trait<$tokens_type>>(
-                &mut self,
-            ) -> Result<Token, GenCFError> {
-                let mut strs = String::new();
-                let start = self.file_stream.index.clone();
-                let token = loop {
-                    match self.file_stream.peep_char() {
-                        None => {
-                            break Token {
-                                token_type: <$tokens_type>::EOF,
-                                pos: None,
-                            }
-                        }
-                        Some(c) => {
-                            let token_type = match <$tokens_type>::new(&mut self.file_stream) {
-                                Ok(token_type) => token_type,
-                                Err(e) => {
-                                    self.file_stream.next_char();
-                                    match c {
-                                        $($rule => gencf::RuleGenerator!($token),)*
-                                        _ => return Err(e)
-                                    }
-                                }
-                            };
-
-                            break Token {
-                                token_type,
-                                pos: Some(Position::new(start, self.file_stream.index.clone() - 1)),
-                            }
-                        }
-                    }
-                };
-
-                Ok(token)
             }
         }
     };
