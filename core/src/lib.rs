@@ -29,23 +29,37 @@ pub fn token_type_attribute(_args: TokenStream, input: TokenStream) -> TokenStre
     let input = parse_macro_input!(input as ItemEnum);
     let vis = &input.vis;
     let ident = &input.ident;
-    let variants = &input.variants.iter().map(|variant| {
-        let ident = &variant.ident;
-        println!("{}", ident);
-        if variant.attrs.iter().find(|attr| { attr.path.is_ident("rule") }).is_some() {
-            quote! {
-                #ident { content: String }
+    let variants = &input
+        .variants
+        .iter()
+        .map(|variant| {
+            let ident = &variant.ident;
+            println!("{}", ident);
+            if variant
+                .attrs
+                .iter()
+                .find(|attr| attr.path.is_ident("rule"))
+                .is_some()
+            {
+                quote! {
+                    #ident { content: String }
+                }
+            } else if variant
+                .attrs
+                .iter()
+                .find(|attr| attr.path.is_ident("basic"))
+                .is_some()
+            {
+                quote! {
+                    #ident { r#type: #ident }
+                }
+            } else {
+                quote! {
+                    #variant
+                }
             }
-        } else if variant.attrs.iter().find(|attr| { attr.path.is_ident("basic") }).is_some() {
-            quote! {
-                #ident { r#type: #ident }
-            }
-        } else {
-            quote! {
-                #variant
-            }
-        }
-    }).collect::<Vec<TokenStream2>>();
+        })
+        .collect::<Vec<TokenStream2>>();
 
     let output = quote! {
         #vis enum #ident {

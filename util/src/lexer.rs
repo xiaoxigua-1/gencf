@@ -1,4 +1,4 @@
-use crate::{gen_cf_error::GenCFError, position::Position, FileStream, TokensTrait, token::Token};
+use crate::{gen_cf_error::GenCFError, position::Position, token::Token, FileStream, TokensTrait};
 use std::path::Path;
 
 pub struct Lexer<'a> {
@@ -14,8 +14,7 @@ impl Lexer<'_> {
         }
     }
 
-    pub fn next_token<TS: TokensTrait>(&mut self) -> Result<Token<TS>, GenCFError>
-    {
+    pub fn next_token<TS: TokensTrait>(&mut self) -> Result<Token<TS>, GenCFError> {
         let start = self.file_stream.index.clone();
         let token = loop {
             match self.file_stream.peep_char() {

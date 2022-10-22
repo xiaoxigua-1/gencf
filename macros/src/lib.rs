@@ -114,7 +114,7 @@ macro_rules! TokensGenerator {
                 Tokens::EOF
             }
         }
-        
+
     };
 }
 

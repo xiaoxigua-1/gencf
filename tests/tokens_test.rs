@@ -1,6 +1,6 @@
 #[gencf::core]
 use gencf::lexer::Lexer;
-use gencf::{GenCFErrorGenerator, OtherTokenGenerator, TokensGenerator, RuleTokenGenerator};
+use gencf::{GenCFErrorGenerator, OtherTokenGenerator, RuleTokenGenerator, TokensGenerator};
 
 GenCFErrorGenerator!(INVALID_SYNTAX => "invalid syntax");
 OtherTokenGenerator!(Keywords, {
