@@ -12,10 +12,17 @@ macro_rules! GenCFErrorGenerator {
 
 #[macro_export]
 macro_rules! TokensGenerator {
+    (basic $other_type: ident) => {
+        $other_type { r#type: $other_type }
+    };
+    (rule $other_type: ident) => {
+        $other_type { content: String }
+    };
     ($error: expr, [$($other_type: ident),*], { $( $token_str:expr => $token:ident ),* }) => {
         #[derive(Debug, Clone, PartialEq)]
         pub enum Tokens {
             EOF,
+            Unknown(String),
             $(
                 $other_type { r#type: $other_type },
             )*
@@ -23,12 +30,6 @@ macro_rules! TokensGenerator {
                 #[doc=$token_str]
                 $token,
             )*
-        }
-
-        #[derive(Debug, Clone)]
-        pub struct Token<T> {
-            pub token_type: T,
-            pub pos: Option<Position>,
         }
 
         impl Tokens {
@@ -84,13 +85,11 @@ macro_rules! TokensGenerator {
                                 end: file_stream.index.clone(),
                             }, path)
                         } else {
-                            Err(GenCFError {
-                                error_message: $error,
-                                pos: Position::new(
-                                    start,
-                                    file_stream.index.clone(),
-                                ),
-                                path
+                            Ok(if let Some(next_char) = file_stream.next_char() {
+                                strs.push(next_char);
+                                Tokens::Unknown(strs)
+                            } else {
+                                break Ok(Tokens::EOF)
                             })
                         }
 
@@ -104,19 +103,12 @@ macro_rules! TokensGenerator {
                     index += 1;
                 }
             }
-        }
 
-        impl TokenTrait for Token<Tokens> {
-            type TokenType = Tokens;
-
-            fn new(token_type: Self::TokenType, pos: Position) -> Self {
-                Token { token_type: token_type, pos: Some(pos) }
-            }
-
-            fn eof() -> Self {
-                Token { token_type: Tokens::EOF, pos: None }
+            fn eof_token() -> Self {
+                Tokens::EOF
             }
         }
+        
     };
 }
 
@@ -137,13 +129,27 @@ macro_rules! OtherTokenGenerator {
             }
         }
 
-        impl KeywordTrait<$name> for $name  {
+        impl OtherTokenTrait<$name> for $name  {
             fn find(s: &str, pos: Position) -> Option<$name> {
                 match s {
                     $(
                         $token => Some($name::$token_type),
                     )*
                     _ => None
+                }
+            }
+        }
+    };
+}
+
+#[macro_export]
+macro_rules! RuleTokenGenerator {
+    ($name: ident, $start_rule: pat) => {
+        mod $name {
+            pub fn start_rule(c: char) -> bool {
+                match c {
+                    $start_rule => true,
+                    _ => false,
                 }
             }
         }
