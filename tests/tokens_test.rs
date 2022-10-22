@@ -20,7 +20,7 @@ TokensGenerator!(
 
 #[test]
 fn token_test() {
-    let content = String::from("-*/++++if ac");
+    let content = String::from("-*/+++++if ac");
     let mut lexer = Lexer::new(&Path::new(""), &content);
     loop {
         match lexer.next_token::<Tokens>() {

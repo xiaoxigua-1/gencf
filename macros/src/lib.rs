@@ -85,11 +85,17 @@ macro_rules! TokensGenerator {
                                 end: file_stream.index.clone(),
                             }, path)
                         } else {
-                            Ok(if let Some(next_char) = file_stream.next_char() {
-                                strs.push(next_char);
-                                Tokens::Unknown(strs)
-                            } else {
-                                break Ok(Tokens::EOF)
+                            let pos = Position::new(start, file_stream.index.clone() - 1);
+                            Ok(match file_stream.next_char() {
+                                Some(next_char) => {
+                                    strs.push(next_char);
+                                    if strs.len() > 1 {
+                                        return Err(GenCFError { error_message: $error, pos, path })
+                                    } else {
+                                        Tokens::Unknown(strs)
+                                    }
+                                },
+                                _ => Tokens::EOF
                             })
                         }
 
