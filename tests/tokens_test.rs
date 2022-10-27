@@ -1,40 +1,31 @@
 #[gencf::core]
 use gencf::lexer::Lexer;
-use gencf::{GenCFErrorGenerator, OtherTokenGenerator, RuleTokenGenerator, TokensGenerator};
+use gencf::{GenCFErrorGenerator, Tokens};
 
 GenCFErrorGenerator!(INVALID_SYNTAX => "invalid syntax");
-OtherTokenGenerator!(Keywords, {
-    "if" => If
-});
-RuleTokenGenerator!(identifier, 'a'..='z' | 'A'..='Z');
-TokensGenerator!(
-    GenCFErrorMessage::INVALID_SYNTAX,
-    [Keywords],
-    {
-        "-" => Minus,
-        "*" => Star,
-        "/" => Slash,
-        "++" => PlusPlus
-    }
-);
+
+#[derive(Tokens)]
+enum Tokens {
+    EOF
+}
 
 #[test]
 fn token_test() {
-    let content = String::from("-*/+++++if ac");
+    let content = String::from("-*/++++ifabc");
     let mut lexer = Lexer::new(&Path::new(""), &content);
-    loop {
-        match lexer.next_token::<Tokens>() {
-            Ok(token) => {
-                if token.token_type == Tokens::EOF {
-                    break;
-                } else {
-                    println!("{:?}", token);
-                }
-            }
-            Err(err) => {
-                println!("{:?}", err);
-                break;
-            }
-        }
-    }
+    // loop {
+    //     match lexer.next_token::<Tokens>() {
+    //         Ok(token) => {
+    //             if token.token_type == Tokens::EOF {
+    //                 break;
+    //             } else {
+    //                 println!("{:?}", token);
+    //             }
+    //         }
+    //         Err(err) => {
+    //             println!("{:?}", err);
+    //             break;
+    //         }
+    //     }
+    // }
 }

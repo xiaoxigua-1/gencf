@@ -3,7 +3,7 @@ use std::path::Path;
 
 pub struct Lexer<'a> {
     file_stream: FileStream<'a>,
-    path: &'a Path,
+    path: &'a Path
 }
 
 impl Lexer<'_> {
