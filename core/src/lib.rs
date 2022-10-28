@@ -21,7 +21,7 @@ pub fn core(_args: TokenStream, input: TokenStream) -> TokenStream {
     })
 }
 
-#[proc_macro_derive(Tokens)]
+#[proc_macro_derive(Tokens, attributes(eq))]
 pub fn tokens_derive(input: TokenStream) -> TokenStream {
     let derive_input: DeriveInput = parse_macro_input!(input);
 

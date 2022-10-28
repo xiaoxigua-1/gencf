@@ -6,6 +6,8 @@ GenCFErrorGenerator!(INVALID_SYNTAX => "invalid syntax");
 
 #[derive(Tokens)]
 enum Tokens {
+    #[eq("abc")]
+    #[eq(123)]
     EOF
 }
 
