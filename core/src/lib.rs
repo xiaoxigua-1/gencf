@@ -12,9 +12,6 @@ pub fn core(_args: TokenStream, input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as Item);
     TokenStream::from(quote! {
         use std::path::Path;
-        use std::fmt::Debug;
-        use std::sync::Arc;
-        use std::ops::Range;
         use gencf::{GenCFError, Position, FileStream, TokensTrait, OtherTokenTrait, Token};
 
         #input
