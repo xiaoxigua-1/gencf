@@ -12,6 +12,7 @@ struct TokenLex {
 #[derive(Clone, Debug, Hash, PartialEq, Eq)]
 enum TokenLexRule {
     Eq(String),
+    None,
 }
 
 impl TokenLex {
@@ -24,6 +25,7 @@ impl TokenLexRule {
     fn nth(&self, index: usize) -> Option<char> {
         match &self {
             TokenLexRule::Eq(str) => str.chars().nth(index),
+            _ => None,
         }
     }
 
@@ -83,7 +85,7 @@ fn variant_attributes(attrs: &Vec<Attribute>) -> syn::Result<Vec<TokenLexRule>> 
                     let args = attr.parse_args::<syn::LitStr>()?;
                     TokenLexRule::Eq(args.value())
                 }
-                _ => TokenLexRule::Eq("".into()),
+                _ => TokenLexRule::None
             })
         })
         .collect::<syn::Result<_>>()?;
@@ -92,7 +94,7 @@ fn variant_attributes(attrs: &Vec<Attribute>) -> syn::Result<Vec<TokenLexRule>> 
 }
 
 fn gen_tokens_impl(info: Vec<TokenLex>, name: &Ident) -> TokenStream {
-    let token_stream = gen_eq_match(&info, 0);
+    let token_stream = gen_match(&info, 0);
     println!("{}", token_stream);
     quote! {
         impl TokensTrait for #name {
@@ -109,7 +111,8 @@ fn gen_tokens_impl(info: Vec<TokenLex>, name: &Ident) -> TokenStream {
     }
 }
 
-fn gen_eq_match(info: &Vec<TokenLex>, index: usize) -> TokenStream {
+/// Generation lexer match syntax
+fn gen_match(info: &Vec<TokenLex>, index: usize) -> TokenStream {
     let mut eq_map: HashMap<char, Vec<TokenLex>> = HashMap::new();
     let mut match_char: Vec<TokenStream> = vec![];
     let mut now_ident: Option<Ident> = None;
@@ -134,7 +137,7 @@ fn gen_eq_match(info: &Vec<TokenLex>, index: usize) -> TokenStream {
         });
 
     for (k, v) in eq_map.iter() {
-        let token_stream = gen_eq_match(v, index + 1);
+        let token_stream = gen_match(v, index + 1);
         match_char.push(quote! {
             Some(#k) => {
                 file_stream.next_char();
@@ -164,3 +167,4 @@ fn gen_eq_match(info: &Vec<TokenLex>, index: usize) -> TokenStream {
         }
     }
 }
+

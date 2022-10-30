@@ -10,6 +10,7 @@ enum Tokens {
     Plus,
     #[eq("++")]
     PlusPlus,
+    #[eof]
     EOF
 }
 
